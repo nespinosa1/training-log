@@ -1,0 +1,4 @@
+*.zip
+*.bak
+apple_health_export/
+.DS_Store

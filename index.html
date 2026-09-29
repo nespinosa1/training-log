@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Training Log</title>
+<style>html,body{margin:0;background:#080a0f}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo } = React;
+const { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } = Recharts;
+// ============================================================
+// DATA — agregar nuevas sesiones al final de este array
+// ============================================================
+const SESSIONS = [
+  {n:1,f:"09/03",d:"Lun",t:"funcional",dur:"0:57",cal:408,fcP:146,fcM:183,z5:9,esf:"Duro",cr:"Pre"},
+  {n:2,f:"13/03",d:"Vie",t:"funcional",dur:"0:51",cal:358,fcP:148,fcM:180,z5:9,esf:"Desafiante",cr:"D1"},
+  {n:3,f:"16/03",d:"Lun",t:"funcional",dur:"0:59",cal:432,fcP:153,fcM:184,z5:13,esf:"Duro",cr:"D4"},
+  {n:4,f:"18/03",d:"Mié",t:"funcional",dur:"1:02",cal:402,fcP:140,fcM:184,z5:7,esf:"Desafiante",cr:"D6"},
+  {n:5,f:"20/03",d:"Vie",t:"funcional",dur:"0:58",cal:373,fcP:145,fcM:183,z5:9,esf:"—",cr:"D8"},
+  {n:6,f:"23/03",d:"Lun",t:"intervalos",dur:"0:51",cal:550,fcP:162,fcM:187,z5:19,esf:"—",cr:"D11"},
+  {n:7,f:"25/03",d:"Mié",t:"funcional",dur:"1:01",cal:452,fcP:149,fcM:189,z5:10,esf:"—",cr:"D13"},
+  {n:8,f:"27/03",d:"Vie",t:"funcional",dur:"0:59",cal:430,fcP:148,fcM:187,z5:6,esf:"—",cr:"D15"},
+  {n:9,f:"28/03",d:"Sáb",t:"maquinas",dur:"0:41",cal:328,fcP:134,fcM:158,z5:0,esf:"—",cr:"D16"},
+  {n:10,f:"30/03",d:"Lun",t:"intervalos",dur:"0:49",cal:462,fcP:149,fcM:182,z5:4,esf:"Muy duro",cr:"D18"},
+  {n:11,f:"30/03",d:"Lun",t:"funcional",dur:"0:50",cal:381,fcP:139,fcM:176,z5:2,esf:"Desafiante",cr:"D18"},
+  {n:12,f:"01/04",d:"Mié",t:"funcional",dur:"1:02",cal:479,fcP:142,fcM:188,z5:9,esf:"Desafiante",cr:"D20"},
+  {n:13,f:"02/04",d:"Jue",t:"intervalos",dur:"1:04",cal:717,fcP:155,fcM:185,z5:20,esf:"Muy duro",cr:"D21"},
+  {n:14,f:"06/04",d:"Lun",t:"funcional",dur:"1:00",cal:456,fcP:149,fcM:182,z5:10,esf:"Duro",cr:"D25"},
+  {n:15,f:"08/04",d:"Mié",t:"caminata",dur:"0:33",cal:116,fcP:119,fcM:135,z5:0,esf:"—",cr:"D27"},
+  {n:16,f:"10/04",d:"Vie",t:"funcional",dur:"0:56",cal:399,fcP:139,fcM:188,z5:4,esf:"Desafiante",cr:"D29"},
+  {n:17,f:"11/04",d:"Sáb",t:"maquinas",dur:"0:29",cal:155,fcP:109,fcM:140,z5:0,esf:"—",cr:"D30"},
+  {n:18,f:"13/04",d:"Lun",t:"funcional",dur:"0:52",cal:421,fcP:150,fcM:184,z5:11,esf:"Duro",cr:"D32"},
+  {n:19,f:"15/04",d:"Mié",t:"intervalos",dur:"0:54",cal:616,fcP:161,fcM:188,z5:22,esf:"Duro",cr:"D34"},
+  {n:20,f:"20/04",d:"Lun",t:"intervalos",dur:"0:54",cal:475,fcP:147,fcM:180,z5:8,esf:"Duro",cr:"D39"},
+  {n:21,f:"20/04",d:"Lun",t:"funcional",dur:"1:00",cal:417,fcP:146,fcM:184,z5:14,esf:"—",cr:"D39"},
+  {n:22,f:"22/04",d:"Mié",t:"funcional",dur:"1:01",cal:468,fcP:150,fcM:187,z5:13,esf:"Extremo",cr:"D41"},
+  {n:23,f:"27/04",d:"Lun",t:"intervalos",dur:"0:58",cal:556,fcP:149,fcM:176,z5:4,esf:"Muy duro",cr:"D46"},
+  {n:24,f:"27/04",d:"Lun",t:"funcional",dur:"1:00",cal:441,fcP:148,fcM:183,z5:7,esf:"Duro",cr:"D46"},
+  {n:25,f:"29/04",d:"Mié",t:"intervalos",dur:"0:54",cal:597,fcP:159,fcM:183,z5:15,esf:"Muy duro",cr:"D48"},
+  {n:26,f:"29/04",d:"Mié",t:"funcional",dur:"0:49",cal:404,fcP:149,fcM:182,z5:6,esf:"—",cr:"D48"},
+  {n:27,f:"01/05",d:"Vie",t:"caminata",dur:"0:31",cal:96,fcP:114,fcM:129,z5:0,esf:"Bajo",cr:"D50"},
+  {n:28,f:"03/05",d:"Dom",t:"caminata",dur:"1:48",cal:357,fcP:109,fcM:145,z5:0,esf:"Bajo",cr:"D52"},
+  {n:29,f:"06/05",d:"Mié",t:"intervalos",dur:"1:00",cal:718,fcP:161,fcM:185,z5:25,esf:"Duro",cr:"D55"},
+  {n:30,f:"08/05",d:"Vie",t:"funcional",dur:"0:55",cal:504,fcP:151,fcM:188,z5:10,esf:"Desafiante",cr:"D57"},
+  {n:31,f:"13/05",d:"Mié",t:"intervalos",dur:"0:43",cal:398,fcP:152,fcM:182,z5:11,esf:"Duro",cr:"D62"},
+  {n:32,f:"13/05",d:"Mié",t:"funcional",dur:"0:26",cal:208,fcP:154,fcM:176,z5:2,esf:"Moderado",cr:"D62"},
+  {n:33,f:"15/05",d:"Vie",t:"funcional",dur:"0:59",cal:502,fcP:148,fcM:185,z5:13,esf:"Duro",cr:"D64"},
+  {n:34,f:"25/05",d:"Lun",t:"caminata",dur:"1:31",cal:291,fcP:100,fcM:128,z5:0,esf:"—",cr:"D74"},
+  {n:35,f:"27/05",d:"Mié",t:"intervalos",dur:"1:00",cal:576,fcP:149,fcM:183,z5:10,esf:"Duro",cr:"D76"},
+  {n:36,f:"27/05",d:"Mié",t:"funcional",dur:"0:25",cal:225,fcP:165,fcM:186,z5:11,esf:"Moderado",cr:"D76"},
+  {n:37,f:"29/05",d:"Vie",t:"funcional",dur:"0:56",cal:440,fcP:151,fcM:183,z5:11,esf:"Duro",cr:"D78"},
+  {n:38,f:"01/06",d:"Lun",t:"intervalos",dur:"1:01",cal:650,fcP:148,fcM:188,z5:11,esf:"Duro",cr:"D81"},
+  {n:39,f:"03/06",d:"Mié",t:"funcional",dur:"0:59",cal:482,fcP:147,fcM:186,z5:10,esf:"—",cr:"D83"},
+  {n:40,f:"08/06",d:"Lun",t:"intervalos",dur:"0:54",cal:598,fcP:159,fcM:187,z5:18,esf:"Máx. esf.",cr:"D88"},
+  {n:41,f:"10/06",d:"Mié",t:"caminata",dur:"0:34",cal:142,fcP:105,fcM:113,z5:0,esf:"—",cr:"D90"},
+  {n:42,f:"12/06",d:"Vie",t:"funcional",dur:"1:14",cal:482,fcP:137,fcM:186,z5:12,esf:"Desafiante",cr:"D92"},
+  {n:43,f:"15/06",d:"Lun",t:"intervalos",dur:"1:03",cal:581,fcP:150,fcM:181,z5:14,esf:"Duro",cr:"D95"},
+  {n:44,f:"17/06",d:"Mié",t:"intervalos",dur:"1:01",cal:641,fcP:154,fcM:183,z5:17,esf:"Muy duro",cr:"D97"},
+  {n:45,f:"17/06",d:"Mié",t:"funcional",dur:"0:33",cal:294,fcP:155,fcM:181,z5:6,esf:"Moderado",cr:"D97"},
+  {n:46,f:"19/06",d:"Vie",t:"funcional",dur:"0:54",cal:415,fcP:142,fcM:183,z5:8,esf:"Desafiante",cr:"D99"},
+  {n:47,f:"24/06",d:"Mié",t:"intervalos",dur:"1:00",cal:631,fcP:152,fcM:185,z5:13,esf:"Duro",cr:"D104"},
+  {n:48,f:"25/06",d:"Jue",t:"yoga",dur:"1:30",cal:301,fcP:85,fcM:135,z5:0,esf:"Bajo",cr:"D105"},
+  {n:49,f:"27/06",d:"Sáb",t:"caminata",dur:"0:54",cal:172,fcP:108,fcM:121,z5:0,esf:"Bajo",cr:"D107"},
+  {n:50,f:"29/06",d:"Lun",t:"intervalos",dur:"0:55",cal:642,fcP:157,fcM:179,z5:12,esf:"Muy duro",cr:"D109"},
+  {n:51,f:"01/07",d:"Mié",t:"funcional",dur:"0:54",cal:457,fcP:159,fcM:189,z5:15,esf:"Duro",cr:"D111"},
+  {n:52,f:"06/07",d:"Lun",t:"intervalos",dur:"1:02",cal:593,fcP:154,fcM:186,z5:19,esf:"Duro",cr:"D116"},
+  {n:53,f:"09/07",d:"Jue",t:"intervalos",dur:"0:56",cal:527,fcP:153,fcM:182,z5:8,esf:"Muy duro",cr:"D119"},
+  {n:54,f:"10/07",d:"Vie",t:"intervalos",dur:"0:55",cal:581,fcP:155,fcM:179,z5:6,esf:"Duro",cr:"D120"},
+  {n:55,f:"10/07",d:"Vie",t:"funcional",dur:"0:30",cal:228,fcP:142,fcM:174,z5:1,esf:"—",cr:"D120"},
+  {n:56,f:"13/07",d:"Lun",t:"intervalos",dur:"1:00",cal:645,fcP:155,fcM:184,z5:15,esf:"Duro",cr:"D123"},
+  {n:57,f:"17/07",d:"Vie",t:"funcional",dur:"0:48",cal:350,fcP:149,fcM:184,z5:6,esf:"Duro",cr:"D127"},
+  {n:58,f:"20/07",d:"Lun",t:"intervalos",dur:"0:48",cal:485,fcP:153,fcM:177,z5:4,esf:"Duro",cr:"D130"},
+  {n:59,f:"22/07",d:"Mié",t:"funcional",dur:"0:53",cal:413,fcP:145,fcM:182,z5:4,esf:"Moderado",cr:"D132"},
+  {n:60,f:"31/07",d:"Vie",t:"funcional",dur:"0:49",cal:390,fcP:147,fcM:178,z5:2,esf:"Duro",cr:"D141"},
+  {n:61,f:"03/08",d:"Lun",t:"funcional",dur:"0:59",cal:439,fcP:146,fcM:177,z5:7,esf:"—",cr:"D144"},
+  {n:62,f:"05/08",d:"Mié",t:"funcional",dur:"0:45",cal:351,fcP:152,fcM:179,z5:6,esf:"Duro",cr:"D146"},
+  {n:63,f:"07/08",d:"Vie",t:"funcional",dur:"0:47",cal:414,fcP:160,fcM:183,z5:16,esf:"Duro",cr:"D148"},
+  {n:64,f:"10/08",d:"Lun",t:"funcional",dur:"0:58",cal:419,fcP:144,fcM:184,z5:4,esf:"Moderado",cr:"D151"},
+  {n:65,f:"16/08",d:"Dom",t:"caminata",dur:"1:45",cal:370,fcP:111,fcM:126,z5:0,esf:"Bajo",cr:"D157"},
+  {n:66,f:"17/08",d:"Lun",t:"caminata",dur:"0:39",cal:146,fcP:122,fcM:137,z5:0,esf:"—",cr:"D158"},
+  {n:67,f:"31/08",d:"Lun",t:"funcional",dur:"0:51",cal:377,fcP:151,fcM:190,z5:12,esf:"—",cr:"D172"},
+  {n:68,f:"06/09",d:"Dom",t:"caminata",dur:"0:42",cal:149,fcP:114,fcM:130,z5:0,esf:"Bajo",cr:"D178"},
+  {n:69,f:"09/09",d:"Mié",t:"funcional",dur:"1:00",cal:398,fcP:142,fcM:185,z5:7,esf:"Desafiante",cr:"D181"},
+  {n:70,f:"11/09",d:"Vie",t:"funcional",dur:"0:58",cal:415,fcP:155,fcM:192,z5:16,esf:"Desafiante",cr:"D183"},
+  {n:71,f:"13/09",d:"Dom",t:"caminata",dur:"0:42",cal:171,fcP:122,fcM:135,z5:0,esf:"Bajo",cr:"D185"},
+  {n:72,f:"14/09",d:"Lun",t:"funcional",dur:"0:51",cal:369,fcP:142,fcM:184,z5:4,esf:"Extremo",cr:"D186"},
+  {n:73,f:"16/09",d:"Mié",t:"funcional",dur:"0:57",cal:408,fcP:142,fcM:178,z5:3,esf:"—",cr:"D188"},
+  {n:74,f:"18/09",d:"Vie",t:"funcional",dur:"0:58",cal:420,fcP:140,fcM:179,z5:4,esf:"Desafiante",cr:"D190"},
+  {n:75,f:"21/09",d:"Lun",t:"funcional",dur:"1:00",cal:474,fcP:152,fcM:189,z5:14,esf:"Duro",cr:"D193"},
+  {n:76,f:"23/09",d:"Mié",t:"funcional",dur:"0:58",cal:434,fcP:143,fcM:179,z5:8,esf:"—",cr:"D195"},
+  {n:77,f:"25/09",d:"Vie",t:"funcional",dur:"0:44",cal:361,fcP:149,fcM:186,z5:7,esf:"—",cr:"D197"},
+  {n:78,f:"28/09",d:"Lun",t:"funcional",dur:"0:54",cal:326,fcP:136,fcM:175,z5:1,esf:"—",cr:"D200"},
+];
+
+const COLORS = {
+  funcional:"#1a6cf5", intervalos:"#8b5cf6", maquinas:"#10b981",
+  caminata:"#6b7280", estimado:"#1a4a8a", yoga:"#f59e0b",
+};
+
+const ESF_COLORS = {
+  "Extremo":"#ef4444","Muy duro":"#f97316","Duro":"#fbbf24",
+  "Difícil":"#a3e635","Desaf.":"#4ade80","Moderado":"#94a3b8","—":"#374151","Est.":"#60a5fa",
+  "Máx. esf.":"#dc2626","Desafiante":"#4ade80","Bajo":"#64748b",
+};
+
+const TYPE_LABELS = {funcional:"Funcional",intervalos:"Intervalos",maquinas:"Máquinas TS",caminata:"Caminata",estimado:"Funcional *",yoga:"Yoga"};
+
+const CustomTooltip = ({active,payload,label,sessions}) => {
+  if (!active || !payload?.length) return null;
+  const s = sessions[label-1];
+  if (!s) return null;
+  return (
+    <div style={{background:"#1a1f2e",border:"1px solid #21262d",borderRadius:8,padding:"8px 12px",fontSize:11}}>
+      <div style={{color:"#7d8590",marginBottom:4}}>#{s.n} · {s.f} {s.d}</div>
+      <div style={{color:"#e6edf3",fontWeight:700}}>{payload[0].value} {payload[0].name}</div>
+      <div style={{color:COLORS[s.t]||"#888",marginTop:2}}>{TYPE_LABELS[s.t]}</div>
+    </div>
+  );
+};
+
+const StatCard = ({val,lbl,sub,accent}) => (
+  <div style={{background:"#0d1117",border:"1px solid #21262d",borderRadius:8,padding:"16px 14px",position:"relative",overflow:"hidden"}}>
+    <div style={{position:"absolute",bottom:0,left:0,right:0,height:2,background:accent||"#f97316",opacity:.4}}/>
+    <div style={{fontSize:36,fontWeight:900,color:"#e6edf3",lineHeight:1,letterSpacing:-1}}>{val}</div>
+    <div style={{fontSize:9,color:"#7d8590",letterSpacing:2,textTransform:"uppercase",marginTop:5}}>{lbl}</div>
+    {sub && <div style={{fontSize:11,color:"#7d8590",marginTop:3}}>{sub}</div>}
+  </div>
+);
+
+const RecordCard = ({icon,val,lbl,date}) => (
+  <div style={{background:"#0d1117",border:"1px solid #21262d",borderRadius:8,padding:14}}>
+    <div style={{fontSize:18,marginBottom:6}}>{icon}</div>
+    <div style={{fontSize:26,fontWeight:900,color:"#f97316",lineHeight:1,letterSpacing:-0.5}}>{val}</div>
+    <div style={{fontSize:9,color:"#7d8590",letterSpacing:2,textTransform:"uppercase",marginTop:4}}>{lbl}</div>
+    <div style={{fontSize:11,color:"#7d8590",marginTop:3}}>{date}</div>
+  </div>
+);
+
+const Badge = ({tipo}) => {
+  const styles = {
+    funcional:{bg:"rgba(26,108,245,.15)",c:"#60a5fa"},
+    intervalos:{bg:"rgba(139,92,246,.15)",c:"#c4b5fd"},
+    maquinas:{bg:"rgba(16,185,129,.15)",c:"#6ee7b7"},
+    caminata:{bg:"rgba(107,114,128,.2)",c:"#9ca3af"},
+    estimado:{bg:"rgba(26,108,245,.08)",c:"#93c5fd",border:"1px dashed rgba(26,108,245,.35)"},
+    yoga:{bg:"rgba(245,158,11,.15)",c:"#fcd34d"},
+  };
+  const s = styles[tipo]||styles.funcional;
+  return (
+    <span style={{display:"inline-block",background:s.bg,color:s.c,border:s.border||"none",fontSize:9,letterSpacing:1,padding:"2px 7px",borderRadius:4,textTransform:"uppercase",fontWeight:600}}>
+      {TYPE_LABELS[tipo]}
+    </span>
+  );
+};
+
+function TrainingLog() {
+  const [filter, setFilter] = useState("all");
+
+  const stats = useMemo(() => {
+    const total = SESSIONS.reduce((a,s) => a+s.cal, 0);
+    const maxCal = Math.max(...SESSIONS.map(s=>s.cal));
+    const maxFCM = Math.max(...SESSIONS.map(s=>s.fcM));
+    const maxZ5  = Math.max(...SESSIONS.filter(s=>s.z5!=null).map(s=>s.z5));
+    const mins = s => { const [h,m] = s.dur.split(":").map(Number); return h*60+m; };
+    const longest = SESSIONS.filter(s=>s.t!=="caminata").reduce((a,s) => mins(s)>mins(a)?s:a);
+    const maxFCP = Math.max(...SESSIONS.map(s=>s.fcP));
+    const byDay = {};
+    SESSIONS.forEach(s => { byDay[s.f] = byDay[s.f] || {cal:0,n:0}; byDay[s.f].cal += s.cal; byDay[s.f].n++; });
+    const [bestDay, bestDayV] = Object.entries(byDay).reduce((a,e) => e[1].cal>a[1].cal?e:a);
+    return {total, maxCal, maxFCM, maxZ5, maxFCP,
+      longest, longestMin: mins(longest), bestDay, bestDayCal: bestDayV.cal, bestDayDouble: bestDayV.n>1,
+      recFCPDates: SESSIONS.filter(s=>s.fcP===maxFCP).map(s=>s.f).join(" & "),
+      recCalDate: SESSIONS.find(s=>s.cal===maxCal)?.f,
+      recFCMDate: SESSIONS.find(s=>s.fcM===maxFCM)?.f,
+      recZ5Date:  SESSIONS.find(s=>s.z5===maxZ5)?.f,
+    };
+  }, []);
+
+  const filtered = filter === "all" ? SESSIONS : SESSIONS.filter(s => s.t === filter);
+  const lastSession = SESSIONS[SESSIONS.length-1];
+
+  const barColor = (s) => s.cal === stats.maxCal ? "#f97316" : COLORS[s.t]||"#1a6cf5";
+
+  return (
+    <div style={{background:"#080a0f",minHeight:"100vh",color:"#e6edf3",fontFamily:"system-ui,-apple-system,sans-serif"}}>
+
+      {/* HEADER */}
+      <div style={{padding:"36px 36px 24px",borderBottom:"1px solid #21262d",background:"linear-gradient(135deg,#080a0f,#0d1520)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:20}}>
+          <div>
+            <div style={{fontSize:"clamp(40px,7vw,72px)",fontWeight:900,lineHeight:.9,letterSpacing:-2}}>
+              TRAINING<br/><span style={{color:"#f97316"}}>LOG</span>
+            </div>
+            <div style={{fontSize:10,color:"#7d8590",letterSpacing:3,textTransform:"uppercase",marginTop:8}}>
+              Nicolás · Buenos Aires · Creatina desde 13/03/2026
+            </div>
+          </div>
+          <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
+            {[
+              {v:SESSIONS.length,l:"Sesiones"},
+              {v:stats.total.toLocaleString("es-AR"),l:"Cal activas"},
+              {v:lastSession.cr.replace("D","D"),l:"Creatina"},
+            ].map(m=>(
+              <div key={m.l} style={{textAlign:"right"}}>
+                <div style={{fontSize:"clamp(28px,4vw,40px)",fontWeight:900,color:"#f97316",lineHeight:1,letterSpacing:-1}}>{m.v}</div>
+                <div style={{fontSize:9,color:"#7d8590",letterSpacing:2,textTransform:"uppercase",marginTop:3}}>{m.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* LEGEND */}
+      <div style={{display:"flex",gap:14,flexWrap:"wrap",padding:"10px 36px",borderBottom:"1px solid #21262d",background:"#0d1117"}}>
+        {Object.entries(COLORS).map(([k,c])=>(
+          <div key={k} style={{display:"flex",alignItems:"center",gap:6,fontSize:9,color:"#7d8590",letterSpacing:1,textTransform:"uppercase"}}>
+            <div style={{width:8,height:8,borderRadius:2,background:c,border:k==="estimado"?"1px dashed #60a5fa":"none",opacity:k==="estimado"?.6:1}}/>
+            {TYPE_LABELS[k]}
+          </div>
+        ))}
+      </div>
+
+      <div style={{padding:"24px 36px"}}>
+
+        {/* STATS */}
+        <div style={{fontSize:20,fontWeight:900,letterSpacing:-.5,marginBottom:12,display:"flex",alignItems:"center",gap:10}}>
+          Resumen <div style={{flex:1,height:1,background:"#21262d"}}/>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10,marginBottom:28}}>
+          <StatCard val={SESSIONS.filter(s=>s.t==="funcional").length} lbl="Funcionales" accent="#1a6cf5"/>
+          <StatCard val={SESSIONS.filter(s=>s.t==="intervalos").length} lbl="Intervalos" accent="#8b5cf6"/>
+          <StatCard val={SESSIONS.filter(s=>s.t==="maquinas").length} lbl="Máquinas TS" accent="#10b981"/>
+          <StatCard val={stats.maxCal} lbl="Récord cal" sub={stats.recCalDate} accent="#f97316"/>
+          <StatCard val={stats.maxFCM+" LPM"} lbl="FC Máx" sub={stats.recFCMDate} accent="#ef4444"/>
+          <StatCard val={stats.maxZ5+" min"} lbl="Récord Z5" sub={stats.recZ5Date} accent="#8b5cf6"/>
+        </div>
+
+        {/* RECORDS */}
+        <div style={{fontSize:20,fontWeight:900,letterSpacing:-.5,marginBottom:12,display:"flex",alignItems:"center",gap:10}}>
+          Récords <div style={{flex:1,height:1,background:"#21262d"}}/>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:10,marginBottom:28}}>
+          <RecordCard icon="🔥" val={stats.maxCal+" kcal"} lbl="Cal activas sesión" date={stats.recCalDate}/>
+          <RecordCard icon="💜" val={stats.maxZ5+" min"} lbl="Zona 5 en sesión" date={stats.recZ5Date}/>
+          <RecordCard icon="❤️" val={stats.maxFCM+" LPM"} lbl="FC Máxima" date={stats.recFCMDate}/>
+          <RecordCard icon="⚡" val={stats.bestDayCal+" kcal"} lbl="Cal activas en día" date={stats.bestDay+(stats.bestDayDouble?" (doble)":"")}/>
+          <RecordCard icon="⏱" val={stats.longestMin+" min"} lbl="Sesión más larga" date={stats.longest.f}/>
+          <RecordCard icon="🏋️" val={stats.maxFCP+" LPM"} lbl="FC Prom máxima" date={stats.recFCPDates}/>
+        </div>
+
+        {/* CHARTS */}
+        <div style={{fontSize:20,fontWeight:900,letterSpacing:-.5,marginBottom:12,display:"flex",alignItems:"center",gap:10}}>
+          Evolución <div style={{flex:1,height:1,background:"#21262d"}}/>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:28}}>
+
+          {/* CAL CHART - full width */}
+          <div style={{background:"#0d1117",border:"1px solid #21262d",borderRadius:8,padding:20,gridColumn:"1/-1"}}>
+            <div style={{fontSize:9,letterSpacing:3,textTransform:"uppercase",color:"#7d8590",marginBottom:14}}>Calorías activas por sesión</div>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={SESSIONS} margin={{top:4,right:4,left:-20,bottom:0}}>
+                <XAxis dataKey="n" tick={{fill:"#7d8590",fontSize:9}} tickLine={false} axisLine={false}/>
+                <YAxis tick={{fill:"#7d8590",fontSize:9}} tickLine={false} axisLine={false}/>
+                <Tooltip content={<CustomTooltip sessions={SESSIONS}/>}/>
+                <Bar dataKey="cal" radius={[2,2,0,0]} name="kcal">
+                  {SESSIONS.map((s,i)=><Cell key={i} fill={barColor(s)} opacity={s.cal===stats.maxCal?1:.8}/>)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* FC CHART */}
+          <div style={{background:"#0d1117",border:"1px solid #21262d",borderRadius:8,padding:20}}>
+            <div style={{fontSize:9,letterSpacing:3,textTransform:"uppercase",color:"#7d8590",marginBottom:14}}>FC Promedio por sesión</div>
+            <ResponsiveContainer width="100%" height={150}>
+              <LineChart data={SESSIONS} margin={{top:4,right:4,left:-20,bottom:0}}>
+                <XAxis dataKey="n" tick={{fill:"#7d8590",fontSize:9}} tickLine={false} axisLine={false}/>
+                <YAxis tick={{fill:"#7d8590",fontSize:9}} tickLine={false} axisLine={false} domain={[120,170]}/>
+                <Tooltip content={<CustomTooltip sessions={SESSIONS}/>}/>
+                <Line type="monotone" dataKey="fcP" stroke="#f97316" strokeWidth={2} dot={{fill:"#f97316",r:2}} activeDot={{r:4}} name="LPM"/>
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Z5 CHART */}
+          <div style={{background:"#0d1117",border:"1px solid #21262d",borderRadius:8,padding:20}}>
+            <div style={{fontSize:9,letterSpacing:3,textTransform:"uppercase",color:"#7d8590",marginBottom:14}}>Zona 5 (min) por sesión</div>
+            <ResponsiveContainer width="100%" height={150}>
+              <BarChart data={SESSIONS} margin={{top:4,right:4,left:-20,bottom:0}}>
+                <XAxis dataKey="n" tick={{fill:"#7d8590",fontSize:9}} tickLine={false} axisLine={false}/>
+                <YAxis tick={{fill:"#7d8590",fontSize:9}} tickLine={false} axisLine={false}/>
+                <Tooltip content={<CustomTooltip sessions={SESSIONS}/>}/>
+                <Bar dataKey="z5" radius={[2,2,0,0]} name="min">
+                  {SESSIONS.map((s,i)=><Cell key={i} fill={s.z5===stats.maxZ5?"#f97316":"rgba(139,92,246,.7)"}/>)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+        </div>
+
+        {/* FILTER */}
+        <div style={{fontSize:20,fontWeight:900,letterSpacing:-.5,marginBottom:12,display:"flex",alignItems:"center",gap:10}}>
+          Historial <div style={{flex:1,height:1,background:"#21262d"}}/>
+        </div>
+        <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+          {["all","funcional","intervalos","maquinas","yoga","caminata"].map(f=>(
+            <button key={f} onClick={()=>setFilter(f)} style={{
+              padding:"4px 12px",borderRadius:6,border:"1px solid",fontSize:10,letterSpacing:1,
+              textTransform:"uppercase",cursor:"pointer",fontWeight:600,transition:"all .15s",
+              background:filter===f?(COLORS[f]||"#f97316"):"transparent",
+              borderColor:filter===f?(COLORS[f]||"#f97316"):"#21262d",
+              color:filter===f?"#fff":"#7d8590",
+            }}>
+              {f==="all"?"Todos":TYPE_LABELS[f]}
+            </button>
+          ))}
+        </div>
+
+        {/* TABLE */}
+        <div style={{overflowX:"auto",border:"1px solid #21262d",borderRadius:8}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+            <thead>
+              <tr style={{background:"#161b22",borderBottom:"1px solid #21262d"}}>
+                {["#","Fecha","Tipo","Dur.","Cal activas","FC prom","FC máx","Zona 5","Esfuerzo","Creatina"].map(h=>(
+                  <th key={h} style={{fontSize:9,letterSpacing:2,textTransform:"uppercase",color:"#7d8590",padding:"10px 12px",textAlign:"left",whiteSpace:"nowrap",fontWeight:500}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((s,i)=>{
+                const isRec = s.cal===stats.maxCal;
+                const isFCRec = s.fcM===stats.maxFCM;
+                const isZ5Rec = s.z5===stats.maxZ5;
+                const calCol = s.cal>=600?"#f97316":s.cal>=450?"#fbbf24":"#e6edf3";
+                return (
+                  <tr key={s.n} style={{borderBottom:i<filtered.length-1?"1px solid #21262d":"none",background:isRec?"rgba(249,115,22,.04)":"transparent"}}>
+                    <td style={{padding:"9px 12px",color:"#7d8590",fontFamily:"monospace",fontSize:11}}>{s.n}</td>
+                    <td style={{padding:"9px 12px",whiteSpace:"nowrap"}}>
+                      <span style={{fontFamily:"monospace",fontSize:11}}>{s.f}</span>
+                      <span style={{display:"block",fontSize:9,color:"#7d8590"}}>{s.d}</span>
+                    </td>
+                    <td style={{padding:"9px 12px"}}><Badge tipo={s.t}/></td>
+                    <td style={{padding:"9px 12px",fontFamily:"monospace",fontSize:11,color:"#7d8590"}}>{s.dur}</td>
+                    <td style={{padding:"9px 12px",fontFamily:"monospace",fontSize:13,fontWeight:700,color:calCol,whiteSpace:"nowrap"}}>
+                      {s.cal.toLocaleString("es-AR")}{isRec?" 🔥":""}
+                    </td>
+                    <td style={{padding:"9px 12px",fontFamily:"monospace",fontSize:11}}>{s.fcP} LPM</td>
+                    <td style={{padding:"9px 12px",fontFamily:"monospace",fontSize:11,color:isFCRec?"#f97316":"inherit",whiteSpace:"nowrap"}}>
+                      {s.fcM} LPM{isFCRec?" ⭐":""}
+                    </td>
+                    <td style={{padding:"9px 12px",whiteSpace:"nowrap"}}>
+                      {s.z5!=null ? (
+                        <div style={{display:"flex",alignItems:"center",gap:5}}>
+                          <div style={{width:Math.round((s.z5/stats.maxZ5)*60),height:3,borderRadius:2,background:"#8b5cf6",minWidth:2}}/>
+                          <span style={{fontFamily:"monospace",fontSize:11,color:"#7d8590"}}>{s.z5}m{isZ5Rec?" 🏆":""}</span>
+                        </div>
+                      ) : <span style={{color:"#21262d"}}>—</span>}
+                    </td>
+                    <td style={{padding:"9px 12px",fontSize:10,color:ESF_COLORS[s.esf]||"#7d8590",fontWeight:600}}>{s.esf}</td>
+                    <td style={{padding:"9px 12px",fontFamily:"monospace",fontSize:10,color:s.cr==="Pre"?"#6b7280":"#7d8590"}}>{s.cr}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* FOOTER */}
+        <div style={{marginTop:24,paddingTop:16,borderTop:"1px solid #21262d",display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+          <span style={{fontSize:9,color:"#7d8590",letterSpacing:2,textTransform:"uppercase"}}>Training Log · Nicolás · Buenos Aires</span>
+          <span style={{fontSize:9,color:"#7d8590",letterSpacing:2,textTransform:"uppercase"}}>Última sesión: {lastSession.f}</span>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<TrainingLog/>);
+</script>
+</body>
+</html>
